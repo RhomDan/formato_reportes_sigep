@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformador y Formateador Excel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+
+    <div class="card">
+        <h2>Transformador de Reportes</h2>
+        <p>Selecciona el tipo de reporte y sube el archivo correspondiente.</p>
+
+        <form action="/transform" method="POST" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label for="reportType">Tipo de Reporte:</label>
+                <select name="report_type" id="reportType" required class="select-input">
+                    <option value="" disabled selected>-- Selecciona un reporte --</option>
+                    <option value="analisis_consistencia">Análisis de Consistencia (Grupos)</option>
+                    <option value="ejecucion_presupuestaria" disabled>Análisis de Contabilidad</option>
+                    <option value="resumen_contable" disabled>Ejecución Presupuestaria</option>
+                </select>
+            </div>
+
+            <div class="file-drop-area">
+                <span class="file-msg">Arrastra tu archivo aquí o haz clic para seleccionar</span>
+                <input class="file-input" type="file" name="excel_file" id="excelFile" accept=".xls, .xlsx" required>
+            </div>
+            <p id="fileNameDisplay" class="file-name"></p>
+
+            <button type="submit" class="btn">Procesar y Descargar</button>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('excelFile');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = "Archivo seleccionado: " + fileInput.files[0].name;
+            } else {
+                fileNameDisplay.textContent = "";
+            }
+        });
+    </script>
+</body>
+</html>
