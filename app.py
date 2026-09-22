@@ -8,76 +8,110 @@ from openpyxl.utils import get_column_letter
 app = Flask(__name__)
 
 def formato_consistencia_conta_teso_grupo(nombre_archivo):
-        try :
-                df = pd.read_excel(nombre_archivo, 
-                                skiprows = 16, 
-                                skipfooter = 1, 
-                                header = None,
-                                dtype = object,
-                                engine = 'xlrd')
-        except:
-                nombre_archivo.seek(0)
-                df = pd.read_excel(nombre_archivo, 
-                                skiprows = 16, 
-                                skipfooter = 1, 
-                                header = None,
-                                dtype = object,
-                                engine = 'xlrd')
-        cols = ['tipo', 'nro_asiento', 'entidad_conta', 'da_conta', 'comprobante', 'tipo', 'regularizacion','transferencia','monto_conta',
-                'entidad_teso', 'da_teso', 'comprobante_teso','t_teso', 'tipo_teso', 'codigo_op', 'monto_teso', 'diferencia']
-        df = df.dropna(axis = 1, how = 'all')
-        df.columns = cols
-        conta = df.iloc[:,0:9].copy()
-        conta = conta.dropna(axis = 0)
-        teso = df.iloc[:,9:-1].copy()
-        conta['key'] = 'Entidad:'+ conta['entidad_conta'].astype(str) + 'DA:' +conta['da_conta'].astype(str) + 'Comprobante:' + conta['comprobante']
-        teso['key'] = 'Entidad:'+ teso['entidad_teso'].astype(str) + 'DA:' +teso['da_teso'].astype(str) + 'Comprobante:' + teso['comprobante_teso']
-        contraste = conta.merge(right = teso, how = 'left', on = 'key')
-        output = io.BytesIO()
-        return archivo_final(output, contraste)
+    try :
+            df = pd.read_excel(nombre_archivo, 
+                            skiprows = 16, 
+                            skipfooter = 1, 
+                            header = None,
+                            dtype = object,
+                            engine = 'xlrd')
+    except:
+            nombre_archivo.seek(0)
+            df = pd.read_excel(nombre_archivo, 
+                            skiprows = 16, 
+                            skipfooter = 1, 
+                            header = None,
+                            dtype = object,
+                            engine = 'xlrd')
+    cols = ['tipo', 'nro_asiento', 'entidad_conta', 'da_conta', 'comprobante', 'tipo', 'regularizacion','transferencia','monto_conta',
+            'entidad_teso', 'da_teso', 'comprobante_teso','t_teso', 'tipo_teso', 'codigo_op', 'monto_teso', 'diferencia']
+    df = df.dropna(axis = 1, how = 'all')
+    df.columns = cols
+    conta = df.iloc[:,0:9].copy()
+    conta = conta.dropna(axis = 0)
+    teso = df.iloc[:,9:-1].copy()
+    conta['key'] = 'Entidad:'+ conta['entidad_conta'].astype(str) + 'DA:' +conta['da_conta'].astype(str) + 'Comprobante:' + conta['comprobante']
+    teso['key'] = 'Entidad:'+ teso['entidad_teso'].astype(str) + 'DA:' +teso['da_teso'].astype(str) + 'Comprobante:' + teso['comprobante_teso']
+    contraste = conta.merge(right = teso, how = 'left', on = 'key')
+    output = io.BytesIO()
+    return archivo_final(output, contraste)
+
+def analisis_contabilidad(nombre_archivo):
+        pass
+
+def reporte_ejecucion_recursos_estructura(nombre_archivo):
+    df = pd.read_excel(nombre_archivo, 
+                       engine = 'xlrd')
+    filas_encontradas = pd.Series(False, index=df.index)
+    for col in df.columns:
+        coincidencias = df[col].astype(str).str.contains(pat = '^Rubro:$', na = False, case = False)
+        filas_encontradas = filas_encontradas | coincidencias
+    tabla_rubros = pd.DataFrame({'rubros':df.loc[filas_encontradas,df.columns[49]]})
+    tabla_ent_transferencia = pd.DataFrame({'ent_transf': df.loc[df[df.columns[50]].notna(), df.columns[50]]}).set_index(tabla_rubros.index)
+    indices = list(tabla_rubros.index)
+    indices.append(len(df))
+    rubros = list(tabla_rubros['rubros'])
+    entidad_transf = list(tabla_ent_transferencia['ent_transf'])
+    rangos = ['rango' + str(i) for i in range(1, len(list(tabla_rubros['rubros'])) + 1)]
+    rubro_rangos = dict(zip(rangos, rubros))
+    ent_transf_rangos = dict(zip(rangos, entidad_transf))
+    df['rangos'] = pd.cut(df.index, bins = indices, right = True, labels = rangos)
+    df_tratado = pd.DataFrame()
+    for rango in rangos:
+        df_temp = df[df['rangos'] == rango].iloc[3:-4,:].dropna(axis = 1, how = 'all')
+        df_temp = df_temp[df_temp.loc[:,df_temp.columns[-2]].notna()].dropna(axis = 1, how = 'all')
+        df_tratado = pd.concat(objs = [df_tratado, df_temp], axis = 0, ignore_index = False)
+    df_tratado['rubro'] = df_tratado['rangos'].map(rubro_rangos)
+    df_tratado['ent_transferncia'] = df_tratado['rangos'].map(ent_transf_rangos)
+    df_tratado = df_tratado.drop(columns = 'rangos')
+    df_tratado.columns = ['doc_dev', 'doc_perc', 'sec', 'tipo_doc', 'fecha_aprobacion', 'devengado', 'percibido', 'resumen', 'rubro', 'ent_transf']
+    df_tratado['fecha_aprobacion'] = pd.to_datetime(df_tratado['fecha_aprobacion']).dt.strftime('%d/%m/%y')
+    output = io.BytesIO()
+    return archivo_final(output, df_tratado)
 
 def archivo_final(salida, df):
-        with pd.ExcelWriter(salida, engine = 'openpyxl') as writer:
-                df.to_excel(writer, index = False, sheet_name = 'Procesados')
-                worksheet = writer.sheets['Procesados']
-                header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
-                header_fill = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid') # Azul oscuro            
-                center_alignment = Alignment(horizontal='center', vertical='center')
-                for col_num in range(1, len(df.columns) + 1):
-                        cell = worksheet.cell(row=1, column=col_num)
-                        cell.font = header_font
-                        cell.fill = header_fill
-                        cell.alignment = center_alignment
-                for col in worksheet.columns:
-                        max_len = max(len(str(cell.value or '')) for cell in col)
-                        col_letter = get_column_letter(col[0].column)
-                        worksheet.column_dimensions[col_letter].width = max(max_len + 4, 12)
-        salida.seek(0)
-        return salida
+    with pd.ExcelWriter(salida, engine = 'openpyxl') as writer:
+            df.to_excel(writer, index = False, sheet_name = 'Procesados')
+            worksheet = writer.sheets['Procesados']
+            header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+            header_fill = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid') # Azul oscuro            
+            center_alignment = Alignment(horizontal='center', vertical='center')
+            for col_num in range(1, len(df.columns) + 1):
+                    cell = worksheet.cell(row=1, column=col_num)
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = center_alignment
+            for col in worksheet.columns:
+                    max_len = max(len(str(cell.value or '')) for cell in col)
+                    col_letter = get_column_letter(col[0].column)
+                    worksheet.column_dimensions[col_letter].width = max(max_len + 4, 12)
+    salida.seek(0)
+    return salida
 
 tipos_reportes = {
-        'analisis_consistencia':formato_consistencia_conta_teso_grupo
+        'analisis_consistencia' : formato_consistencia_conta_teso_grupo,
+        'reporte_rec_estructura' : reporte_ejecucion_recursos_estructura
 }
 
 @app.route('/')
 def index():
-        return render_template('index.html')
+    return render_template('index.html')
 @app.route('/transform', methods = ['POST'])
 def transform():
-        report_type = request.form.get('report_type')
-        file = request.files.get('excel_file')
-        if file.filename == '':
-                return 'Nombre de archivo no valido', 400
-        if report_type not in tipos_reportes:
-                return "Tipo de reporte no válido.", 400
-        funcion_procesadora = tipos_reportes[report_type]
-        processed_file = funcion_procesadora(file)
-        output_filename = f"procesado_{file.filename.rsplit('.', 1)[0]}.xlsx"
-        return send_file(
-                        processed_file,
-                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        as_attachment=True,
-                        download_name=output_filename
+    report_type = request.form.get('report_type')
+    file = request.files.get('excel_file')
+    if file.filename == '':
+            return 'Nombre de archivo no valido', 400
+    if report_type not in tipos_reportes:
+            return "Tipo de reporte no válido.", 400
+    funcion_procesadora = tipos_reportes[report_type]
+    processed_file = funcion_procesadora(file)
+    output_filename = f"procesado_{file.filename.rsplit('.', 1)[0]}.xlsx"
+    return send_file(
+                    processed_file,
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    as_attachment=True,
+                    download_name=output_filename
                 )
 if __name__ == '__main__':
-        app.run(debug = True)
+    app.run(debug = True)
