@@ -5,6 +5,11 @@ Aplicación web desarrollada en **Python (Flask)** que permite cargar archivos d
 Mismo que se puede ingresar a través del siguiente link:
 
 https://formato-reportes-sigep.onrender.com/
+
+Actualmente se tienen los reportes:
+* Análisis de Consistencia Contabilidad y Tesorería por Grupo.
+* Reporte de Ejecución de Recursos por Estructura.
+* Reporte Consulta por Partidas.
 ---
 
 ## 🚀 Características
@@ -13,9 +18,7 @@ https://formato-reportes-sigep.onrender.com/
 * **Procesamiento dinámico:** Múltiples opciones de transformación según el tipo de reporte seleccionado (Análisis de Consistencia, Ejecución Presupuestaria, Resumen Contable, etc.).
 * **Formateo automático:**
   * Limpieza de espacios en blanco y estandarización de columnas.
-  * Encabezados con estilos visuales personalizados (fuentes, rellenos de color y alineación).
   * Autoajuste automático del ancho de columna según el contenido.
-  * Aplicación de bordes delgados a la grilla de datos.
 * **Procesamiento en memoria:** No almacena ni acumula archivos temporales en el servidor, garantizando alta eficiencia y seguridad.
 
 ---
