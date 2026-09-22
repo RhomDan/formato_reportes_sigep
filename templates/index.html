@@ -13,7 +13,7 @@
         <h2>Transformador de Reportes</h2>
         <p>Selecciona el tipo de reporte y sube el archivo correspondiente.</p>
 
-        <form action="/transform" method="POST" enctype="multipart/form-data">
+        <form action="/transform" method="POST" enctype="multipart/form-data" id="uploadForm">
             
             <div class="form-group">
                 <label for="reportType">Tipo de Reporte:</label>
@@ -32,14 +32,19 @@
                 <input class="file-input" type="file" name="excel_file" id="excelFile" accept=".xls, .xlsx" required>
             </div>
             <p id="fileNameDisplay" class="file-name"></p>
-
-            <button type="submit" class="btn">Procesar y Descargar</button>
+            
+            <div class="button-group">
+                <button type="submit" class="btn btn">Procesar y Descargar</button>
+                <button type="button" class="btn btn-reset" id="resetBtn">Resetear</button>
+            </div>
         </form>
     </div>
 
     <script>
         const fileInput = document.getElementById('excelFile');
         const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const uploadForm = document.getElementById('uploadForm');
+        const resetBtn = document.getElementById('resetBtn')
 
         fileInput.addEventListener('change', function() {
             if (fileInput.files.length > 0) {
@@ -47,6 +52,10 @@
             } else {
                 fileNameDisplay.textContent = "";
             }
+        })   
+        resetBtn.addEventListener('click', function() {
+            uploadForm.reset();
+            fileNameDisplay.textContent = "";
         });
     </script>
 </body>

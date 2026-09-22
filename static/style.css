@@ -74,22 +74,44 @@ body {
     font-weight: bold;
 }
 
-.btn {
+.button-group {
+    display: flex;
+    gap: 12px;
     margin-top: 25px;
-    width: 100%;
+}
+
+.btn {
+    flex: 1;
     padding: 12px;
-    background-color: #007bff;
-    color: white;
     border: none;
     border-radius: 6px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+
+.btn {
+    background-color: #007bff;
+    color: white;
 }
 
 .btn:hover {
     background-color: #0056b3;
+}
+
+.btn-reset {
+    background-color: #b97216;
+    color: white;
+}
+
+.btn-reset:hover {
+    background-color: #8f4a0a;
 }
 .form-group {
     margin-bottom: 20px;
