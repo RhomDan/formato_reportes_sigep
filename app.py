@@ -69,6 +69,22 @@ def reporte_ejecucion_recursos_estructura(nombre_archivo):
     output = io.BytesIO()
     return archivo_final(output, df_tratado)
 
+def consulta_partidas(nombre_archivo):
+    df = pd.read_excel('D:/Rommel Daniel Cuba Calle/Descargas/REgaReporteComGastoCatProg (44).xls')
+    objeto = df.iloc[1,21]
+    ent_transferencia = df.iloc[2, 21]
+    df = df.iloc[6:,:].dropna(axis = 1, how = 'all')
+    df = df[df[df.columns[9]].notna()].dropna(axis = 1, how = 'all')
+    df.columns = ['clase_gasto', 'preventivo', 'compromiso', 'devengado', 'pago', 'sec', 'fecha_elaboracion',
+                  'fecha_verificacion', 'fecha_aprobacion', 'glosa', 'importe', 'multas', 'total_autorizado',
+                  'retenciones', 'liquido']
+    df = df.drop(['fecha_elaboracion', 'fecha_verificacion'], axis = 1)
+    df['fecha_aprobacion'] = pd.to_datetime(df['fecha_aprobacion']).dt.strftime('%d/%m/%Y')
+    df['objeto'] = objeto
+    df['ent_transferencia'] = ent_transferencia
+    output = io.BytesIO()
+    return archivo_final(output, df)
+
 def archivo_final(salida, df):
     with pd.ExcelWriter(salida, engine = 'openpyxl') as writer:
             df.to_excel(writer, index = False, sheet_name = 'Procesados')
@@ -90,7 +106,8 @@ def archivo_final(salida, df):
 
 tipos_reportes = {
         'analisis_consistencia' : formato_consistencia_conta_teso_grupo,
-        'reporte_rec_estructura' : reporte_ejecucion_recursos_estructura
+        'reporte_rec_estructura' : reporte_ejecucion_recursos_estructura,
+        'reporte_consulta_partidas' : consulta_partidas
 }
 
 @app.route('/')
