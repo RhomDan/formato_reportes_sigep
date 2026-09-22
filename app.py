@@ -70,7 +70,7 @@ def reporte_ejecucion_recursos_estructura(nombre_archivo):
     return archivo_final(output, df_tratado)
 
 def consulta_partidas(nombre_archivo):
-    df = pd.read_excel('D:/Rommel Daniel Cuba Calle/Descargas/REgaReporteComGastoCatProg (44).xls')
+    df = pd.read_excel(nombre_archivo)
     objeto = df.iloc[1,21]
     ent_transferencia = df.iloc[2, 21]
     df = df.iloc[6:,:].dropna(axis = 1, how = 'all')
