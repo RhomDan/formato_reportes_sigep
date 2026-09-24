@@ -26,13 +26,21 @@ def formato_consistencia_conta_teso_grupo(nombre_archivo):
     cols = ['tipo', 'nro_asiento', 'entidad_conta', 'da_conta', 'comprobante', 'tipo', 'regularizacion','transferencia','monto_conta',
             'entidad_teso', 'da_teso', 'comprobante_teso','t_teso', 'tipo_teso', 'codigo_op', 'monto_teso', 'diferencia']
     df = df.dropna(axis = 1, how = 'all')
-    df.columns = cols
-    conta = df.iloc[:,0:9].copy()
+    try:
+        df.columns = cols
+    except:
+        cols.remove('regularizacion')
+        cols.remove('tipo_teso')
+        df.columns = cols
+    conta = df.loc[:,:'monto_conta'].copy()
     conta = conta.dropna(axis = 0)
-    teso = df.iloc[:,9:-1].copy()
+    teso = df.loc[:,'entidad_teso':'monto_teso'].copy()
     conta['key'] = 'Entidad:'+ conta['entidad_conta'].astype(str) + 'DA:' +conta['da_conta'].astype(str) + 'Comprobante:' + conta['comprobante']
     teso['key'] = 'Entidad:'+ teso['entidad_teso'].astype(str) + 'DA:' +teso['da_teso'].astype(str) + 'Comprobante:' + teso['comprobante_teso']
-    contraste = conta.merge(right = teso, how = 'left', on = 'key')
+    contraste = conta.merge(right = teso, how = 'outer', on = 'key')
+    contraste['monto_conta'] = contraste['monto_conta'].fillna(0)
+    contraste['monto_teso'] = contraste['monto_teso'].fillna(0)
+    contraste['diferencia'] = contraste['monto_conta'] - contraste['monto_teso']
     output = io.BytesIO()
     return archivo_final(output, contraste)
 
