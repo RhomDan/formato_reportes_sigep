@@ -23,24 +23,23 @@ def formato_consistencia_conta_teso_grupo(nombre_archivo):
                             header = None,
                             dtype = object,
                             engine = 'xlrd')
-    cols = ['tipo', 'nro_asiento', 'entidad_conta', 'da_conta', 'comprobante', 'tipo', 'regularizacion','transferencia','monto_conta',
-            'entidad_teso', 'da_teso', 'comprobante_teso','t_teso', 'tipo_teso', 'codigo_op', 'monto_teso', 'diferencia']
     df = df.dropna(axis = 1, how = 'all')
-    try:
-        df.columns = cols
-    except:
-        cols.remove('regularizacion')
-        cols.remove('tipo_teso')
-        df.columns = cols
+    df =  df.drop(df.columns[-1], axis = 1)
+    lista_cols = ['tipo', 'nro_asiento', 'entidad_conta', 'da_conta', 'documento_conta', 'tipo_conta', 't_conta','r_conta','monto_conta',
+        'entidad_teso', 'da_teso', 'documento_teso','t_teso', 'r_teso', 'codigo_op', 'monto_teso']
+    cols = {0:'tipo', 3:'nro_asiento', 9:'entidad_conta', 11:'da_conta', 14:'documento_conta', 20:'tipo_conta', 28:'t_conta',30:'r_conta',36:'monto_conta',
+        45:'entidad_teso', 46:'da_teso', 49:'documento_teso', 54:'t_teso', 59:'r_teso', 60:'codigo_op', 62:'monto_teso'}
+    df = df.rename(columns = cols)
+    df = df.reindex(columns = lista_cols)
     conta = df.loc[:,:'monto_conta'].copy()
-    conta = conta.dropna(axis = 0)
     teso = df.loc[:,'entidad_teso':'monto_teso'].copy()
-    conta['key'] = 'Entidad:'+ conta['entidad_conta'].astype(str) + 'DA:' +conta['da_conta'].astype(str) + 'Comprobante:' + conta['comprobante']
-    teso['key'] = 'Entidad:'+ teso['entidad_teso'].astype(str) + 'DA:' +teso['da_teso'].astype(str) + 'Comprobante:' + teso['comprobante_teso']
+    conta['key'] = 'Entidad:'+ conta['entidad_conta'].astype(str) + 'DA:' + conta['da_conta'].astype(str) + 'Comprobante:' + conta['documento_conta']
+    teso['key'] = 'Entidad:'+ teso['entidad_teso'].astype(str) + 'DA:' +teso['da_teso'].astype(str) + 'Comprobante:' + teso['documento_teso']
     contraste = conta.merge(right = teso, how = 'outer', on = 'key')
     contraste['monto_conta'] = contraste['monto_conta'].fillna(0)
     contraste['monto_teso'] = contraste['monto_teso'].fillna(0)
     contraste['diferencia'] = contraste['monto_conta'] - contraste['monto_teso']
+    contraste = contraste[contraste['key'].notna()]
     output = io.BytesIO()
     return archivo_final(output, contraste)
 

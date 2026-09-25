@@ -1,4 +1,4 @@
-# 📊 Transformador y Formateador de Reportes SIGEP
+# 📊 Formateador de Reportes SIGEP
 
 Aplicación web desarrollada en **Python (Flask)** que permite cargar archivos de hojas de cálculo (`.xls` y `.xlsx`), aplicar transformaciones de datos automáticas y estructurar el formato visual (colores de cabecera, bordes, alineación y autoajuste de columnas) para descargar un reporte limpio.
 
