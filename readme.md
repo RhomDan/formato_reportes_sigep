@@ -10,6 +10,7 @@ Actualmente se tienen los reportes:
 * Análisis de Consistencia Contabilidad y Tesorería por Grupo.
 * Reporte de Ejecución de Recursos por Estructura.
 * Reporte Consulta por Partidas.
+* Reporte Ejecución Recursos - Entidad.
 ---
 
 ## 🚀 Características

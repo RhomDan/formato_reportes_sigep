@@ -92,6 +92,15 @@ def consulta_partidas(nombre_archivo):
     output = io.BytesIO()
     return archivo_final(output, df)
 
+def reporte_recursos_entidad(nombre_archivo):
+    df = pd.read_excel(nombre_archivo, header = None, skiprows = 1)
+    df = df.dropna(axis = 1, how = 'all')
+    cols = ['entidad', 'fuente', 'organimo', 'rubro', 'desc_rubro', 'ent_otorgante', 'inicial', 'modificado', 'vigente', 
+            'devengado', 'percibido', 'por_devengar', 'desc_entidad', 'desc_fuente', 'desc_organismo']
+    df.columns = cols
+    output = io.BytesIO()
+    return archivo_final(output, df)
+
 def archivo_final(salida, df):
     with pd.ExcelWriter(salida, engine = 'openpyxl') as writer:
             df.to_excel(writer, index = False, sheet_name = 'Procesados')
@@ -114,7 +123,8 @@ def archivo_final(salida, df):
 tipos_reportes = {
         'analisis_consistencia' : formato_consistencia_conta_teso_grupo,
         'reporte_rec_estructura' : reporte_ejecucion_recursos_estructura,
-        'reporte_consulta_partidas' : consulta_partidas
+        'reporte_consulta_partidas' : consulta_partidas,
+        'reporte_ejecucion_recursos_entidad' : reporte_recursos_entidad,
 }
 
 @app.route('/')
