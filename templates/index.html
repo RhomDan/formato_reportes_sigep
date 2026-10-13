@@ -19,10 +19,10 @@
                 <label for="reportType">Tipo de Reporte:</label>
                 <select name="report_type" id="reportType" required class="select-input">
                     <option value="" disabled selected>-- Selecciona un reporte --</option>
-                    <option value="analisis_consistencia">Análisis de Consistencia (Grupos)</option>
-                    <option value="reporte_rec_estructura">Reporte Ejecución Recursos - Estructura</option>
-                    <option value="reporte_consulta_partidas">Reporte Consulta Partidas</option>
-                    <option value="reporte_ejecucion_recursos_entidad">Reporte Ejecución Recursos Entidad</option>
+                    <option value="analisis_consistencia" data-image="{{ url_for('static', filename='img/cuadro_detallado_cont_teso.png') }}">Análisis de Consistencia (Grupos)</option>
+                    <option value="reporte_rec_estructura" data-image="{{ url_for('static', filename='img/eepp_recursos_estructura.png')}}">Reporte Ejecución Recursos - Estructura</option>
+                    <option value="reporte_consulta_partidas" data-image="{{ url_for('static', filename='img/consulta_partidas.png')}}">Reporte Consulta Partidas</option>
+                    <option value="reporte_ejecucion_recursos_entidad" data-image="{{ url_for('static', filename='img/eepp_recursos_entidad.png')}}">Reporte Ejecución Recursos Entidad</option>
                     <option value="ejecucion_presupuestaria" disabled>Análisis de Contabilidad</option>
                     <option value="resumen_contable" disabled>Ejecución Presupuestaria</option>
                 </select>
@@ -41,7 +41,16 @@
         </form>
     </div>
 
+    <div id="previewPanel" class="preview-panel hidden">
+        <!-- <p style="text-align:left;"> Bajo la siguiente ruta: </p> -->
+        <p class="preview-title">Pantalla del reporte</p>
+        <img id="reportPreviewImg" src="" alt="Vista previa del reporte" class="preview-image">
+    </div>
+
     <script>
+        const reportTypeSelect = document.getElementById('reportType');
+        const previewPanel = document.getElementById('previewPanel');
+        const reportPreviewImg = document.getElementById('reportPreviewImg');
         const fileInput = document.getElementById('excelFile');
         const fileNameDisplay = document.getElementById('fileNameDisplay');
         const uploadForm = document.getElementById('uploadForm');
@@ -54,9 +63,22 @@
                 fileNameDisplay.textContent = "";
             }
         })   
+        reportTypeSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const imageUrl = selectedOption.getAttribute('data-image');
+
+            if (imageUrl) {
+                reportPreviewImg.src = imageUrl;
+                previewPanel.classList.remove('hidden'); // Muestra el panel
+            } else {
+                previewPanel.classList.add('hidden');    // Oculta el panel si no hay imagen
+            }
+        })
         resetBtn.addEventListener('click', function() {
             uploadForm.reset();
             fileNameDisplay.textContent = "";
+            previewPanel.classList.add('hidden');
+            reportPreviewImg.src = "";
         });
     </script>
 </body>
