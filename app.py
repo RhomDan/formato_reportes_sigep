@@ -101,6 +101,35 @@ def reporte_recursos_entidad(nombre_archivo):
     output = io.BytesIO()
     return archivo_final(output, df)
 
+def reporte_gastos_con_formato(nombre_archivo):
+    df = pd.read_excel(nombre_archivo, header = None)
+    df = df.dropna(axis = 0, how = 'all')
+    df = df.dropna(axis = 1, how = 'all')
+    df.loc[df[2] == 'Entidad', 'cod_ent'] = df.loc[df[2] == 'Entidad', 5]
+    df.loc[df[2] == 'Entidad', 'desc_ent'] = df.loc[df[2] == 'Entidad', 10]
+    df.loc[df[2] == 'DA', 'cod_da'] = df.loc[df[2] == 'DA', 5]
+    df.loc[df[2] == 'DA', 'desc_da'] = df.loc[df[2] == 'DA', 10]
+    df.loc[df[2] == 'UE', 'cod_ue'] = df.loc[df[2] == 'UE', 5]
+    df.loc[df[2] == 'UE', 'desc_ue'] = df.loc[df[2] == 'UE', 10]
+    df.loc[df[2] == 'Cat. Prg.', 'cod_cat_prog'] = df.loc[df[2] == 'Cat. Prg.', 5]
+    df.loc[df[2] == 'Cat. Prg.', 'desc_cat_prog'] = df.loc[df[2] == 'Cat. Prg.', 10]
+    df.loc[df[2] == 'FTE', 'cod_fte'] = df.loc[df[2] == 'FTE', 5]
+    df.loc[df[2] == 'FTE', 'desc_fte'] = df.loc[df[2] == 'FTE', 10]
+    df.loc[df[2] == 'Org.', 'cod_org'] = df.loc[df[2] == 'Org.', 5]
+    df.loc[df[2] == 'Org.', 'desc_org'] = df.loc[df[2] == 'Org.', 10]
+    df.loc[df[2] == 'Grupo', 'cod_grupo'] = df.loc[df[2] == 'Grupo', 5]
+    df.loc[df[2] == 'Grupo', 'desc_grupo'] = df.loc[df[2] == 'Grupo', 10]
+    df.iloc[:,12:] = df.iloc[:,12:].ffill(axis = 0)
+    df = df.drop(df[df[1].isna()].index, axis = 0)
+    df = df.drop(df[df[1].str.contains('Total|TOTALES', na = False)].index, axis = 0)
+    df = df.dropna(axis = 1, how = 'all')
+    cols = df.loc[df.index[0], df.iloc[0,:].notna()].to_list() + df.loc[df.index[0], df.iloc[0,:].isna()].index.to_list()
+    df = df.drop(df[df.iloc[:,0] == cols[0]].index, axis = 0)
+    cols = [col.lower().replace('.','').replace(' ', '_') for col in cols]
+    df.columns = cols
+    output = io.BytesIO()
+    return archivo_final(output, df)
+
 def archivo_final(salida, df):
     with pd.ExcelWriter(salida, engine = 'openpyxl') as writer:
             df.to_excel(writer, index = False, sheet_name = 'Procesados')
@@ -125,6 +154,7 @@ tipos_reportes = {
         'reporte_rec_estructura' : reporte_ejecucion_recursos_estructura,
         'reporte_consulta_partidas' : consulta_partidas,
         'reporte_ejecucion_recursos_entidad' : reporte_recursos_entidad,
+        'reporte_ejecucion_gastos_formato' : reporte_gastos_con_formato,
 }
 
 @app.route('/')
